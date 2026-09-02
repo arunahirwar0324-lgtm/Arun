@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Akbar Birbal AI Image Generator</title>
+<style>
+body{margin:0;background:#10131a;color:#fff;font-family:Arial,sans-serif}.wrap{max-width:1100px;margin:auto;padding:18px}
+.card{background:#1a202b;border:1px solid #303847;border-radius:18px;padding:20px;margin-bottom:16px}
+h1{color:#ffd166;margin:0 0 8px}p{color:#b9c1ce}textarea{width:100%;min-height:130px;box-sizing:border-box;background:#0e1218;color:white;border:1px solid #3b4453;border-radius:12px;padding:13px;font-size:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}select,button{padding:12px 15px;border-radius:10px;border:0;font-weight:bold}select{background:#0e1218;color:#fff;border:1px solid #3b4453}button{background:#ffd166;color:#111;cursor:pointer}button:disabled{opacity:.5}.secondary{background:#303847;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}.item{background:#0e1218;border-radius:13px;padding:10px;border:1px solid #303847}.item img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:9px}.num{color:#ffd166;font-weight:bold;margin-bottom:7px}.err{color:#ff9c9c;font-size:13px;padding:8px}.bar{height:8px;background:#303847;border-radius:8px;overflow:hidden;margin-top:12px}.bar i{display:block;height:100%;width:0;background:#ffd166;transition:.2s}.note{font-size:13px;color:#9fa8b8}
+</style></head>
+<body><div class="wrap">
+<div class="card">
+<h1>👑 अकबर–बीरबल AI Image Generator</h1>
+<p>कहानी लिखें और 50 तक 16:9 YouTube images बनाएं। API key server पर सुरक्षित रहती है।</p>
+<textarea id="story" placeholder="उदाहरण: अकबर ने बीरबल की बुद्धिमानी की परीक्षा लेने के लिए एक कठिन सवाल पूछा..."></textarea>
+<div class="row">
+<label>Images: <select id="count"><option>50</option><option>25</option><option>10</option><option>5</option></select></label>
+<label>Style: <select id="style"><option>cinematic historical Indian, realistic</option><option>3D cartoon, colorful, family friendly</option><option>storybook illustration</option></select></label>
+<button id="go" onclick="start()">🚀 50 Images Generate</button>
+<button class="secondary" onclick="downloadAll()">⬇️ Download All</button>
+</div>
+<div class="bar"><i id="progress"></i></div><p id="status" class="note">तैयार है।</p>
+</div>
+<div class="card"><div id="grid" class="grid"></div></div>
+</div>
+<script>
+let images=[];
+const $=id=>document.getElementById(id);
+function scenePrompt(story,i,style){
+ const scenes=[
+"Akbar sits on a grand Mughal throne while Birbal stands nearby in the royal court.",
+"Akbar asks a challenging question and Birbal calmly thinks of a clever answer.",
+"Birbal explains his idea to Akbar while courtiers listen with curiosity.",
+"Akbar and Birbal walk through a magnificent palace garden discussing the problem.",
+"A lively royal court scene where everyone reacts to Birbal's witty solution.",
+"Akbar and Birbal investigate a mysterious situation in the palace.",
+"Birbal demonstrates his clever solution in front of the emperor.",
+"A bustling historical Indian marketplace where Akbar and Birbal observe the situation.",
+"Akbar smiles with surprise after hearing Birbal's unexpected answer.",
+"Final royal court scene celebrating Birbal's wisdom."
+];
+return `${story}\nScene ${i+1}: ${scenes[i%scenes.length]}\nCreate a coherent historical depiction of Emperor Akbar and Birbal. Keep their character appearance, clothing and age consistent across all scenes. ${style}. Detailed Mughal-era India, cinematic composition, expressive faces, natural lighting, high detail, clean frame, no text, no watermark. Widescreen 16:9 landscape for a YouTube long video.`;
+}
+async function start(){
+ const story=$("story").value.trim();
+ if(!story)return alert("पहले कहानी लिखें।");
+ const n=+$("count").value; $("go").disabled=true; images=[]; $("grid").innerHTML="";
+ for(let i=0;i<n;i++){
+   $("status").textContent=`Image ${i+1} / ${n} बन रही है...`;
+   $("progress").style.width=((i/n)*100)+"%";
+   const card=document.createElement("div");card.className="item";card.innerHTML=`<div class="num">Photo ${i+1} — generating...</div>`;$("grid").appendChild(card);
+   try{
+    const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:scenePrompt(story,i,$("style").value)})});
+    const d=await r.json(); if(!r.ok) throw new Error(d.error||"Generation failed");
+    images.push(d.image); card.innerHTML=`<div class="num">Photo ${i+1}</div><img src="${d.image}" alt="Akbar Birbal scene ${i+1}"><br><button class="secondary" onclick="downloadOne(${images.length-1})">Download</button>`;
+   }catch(e){card.innerHTML=`<div class="num">Photo ${i+1}</div><div class="err">${e.message}</div>`;}
+ }
+ $("progress").style.width="100%";$("status").textContent=`काम पूरा। ${images.length} images तैयार हैं।`;$("go").disabled=false;
+}
+function downloadOne(i){const a=document.createElement("a");a.href=images[i];a.download=`akbar-birbal-${String(i+1).padStart(2,"0")}.jpg`;a.click();}
+async function downloadAll(){if(!images.length)return alert("पहले images generate करें.");images.forEach((_,i)=>setTimeout(()=>downloadOne(i),i*250));}
+</script></body></html>
