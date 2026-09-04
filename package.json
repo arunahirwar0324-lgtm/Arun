@@ -1,0 +1,12 @@
+{
+  "name": "akbar-birbal-image-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node server.js" },
+  "dependencies": {
+    "@google/genai": "latest",
+    "archiver": "latest",
+    "express": "latest"
+  }
+}
