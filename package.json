@@ -6,7 +6,7 @@
   "scripts": { "start": "node server.js" },
   "dependencies": {
     "@google/genai": "latest",
-    "archiver": "latest"
+    "archiver": "latest",
     "express": "latest"
     "dotenv':"latest"
   }
